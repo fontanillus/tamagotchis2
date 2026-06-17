@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minomi y amigos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="shortcut icon" href="./img/juego.png" type="image/x-icon">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style type="text/tailwindcss">
+    @import "tailwindcss";
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-15px); }
+    }
+
+    .animate-float {
+      animation: float 3s ease-in-out infinite;
+    }
+  </style>
+</head>
+
+<body class="relative flex min-h-screen flex-col overflow-x-hidden font-[Outfit,Segoe_UI,Tahoma,Geneva,Verdana,sans-serif] text-[#e5eef7] bg-linear-to-br from-[#091833] via-[#114b5f] to-[#1a936f]">
+  <!-- Elementos decorativos: no reciben clics ni forman parte del contenido. -->
+  <div class="pointer-events-none fixed -left-10 -top-14 h-[220px] w-[220px] rounded-full bg-[#29f2ff] opacity-30 blur-[80px] animate-pulse"></div>
+  <div class="pointer-events-none fixed -right-20 top-[35%] h-[240px] w-[240px] rounded-full bg-[#d9ff00] opacity-25 blur-[90px] animate-pulse [animation-delay:1.2s]"></div>
+  <div class="pointer-events-none fixed -bottom-14 left-[28%] h-[220px] w-[220px] rounded-full bg-[#00e5a8] opacity-25 blur-[80px] animate-pulse [animation-delay:2s]"></div>
+
+  <main class="relative z-10 mx-auto w-full max-w-7xl flex-1 px-3 py-2 sm:px-5">
+    <!-- Vista inicial: selector por nombre y carrusel sincronizado. -->
+    <section id="vistaSeleccion" class="flex min-h-[calc(100vh-6rem)] items-center sm:min-h-[calc(100vh-5rem)]">
+      <div class="mx-auto w-full max-w-6xl rounded-3xl border border-lime-200/20 bg-[rgba(15,23,42,0.84)] p-3 backdrop-blur-sm shadow-[0_4px_20px_rgba(2,8,20,0.45),0_20px_45px_rgba(0,0,0,0.35)] sm:p-4">
+        <h1 class="text-center text-xl font-extrabold tracking-tight text-[#c6d6a0] sm:text-3xl">Escoge tu Tamagotchi</h1>
+        <p class="mx-auto mt-1 max-w-2xl text-center text-xs text-[#b7c6d9] sm:text-sm">Selecciona tu mascota virtual para empezar la aventura.</p>
+
+        <div class="mx-auto mt-4 max-w-xl">
+          <label for="selectorMascota" class="mb-1.5 block text-xs font-semibold text-[#c6d6a0] sm:text-sm">Selecciona por nombre</label>
+          <!-- JavaScript crea las opciones desde el array mascotas. -->
+          <select id="selectorMascota" title="Selecciona tu mascota por nombre" class="w-full rounded-xl border border-cyan-200/35 bg-slate-950/45 px-3 py-2 text-sm font-semibold text-[#e5eef7] outline-none transition focus:border-[#c6d6a0] focus:ring-2 focus:ring-[#c6d6a0]/40"></select>
+        </div>
+
+        <!-- Los botones cambian el índice del array y actualizan la tarjeta central. -->
+        <div class="mx-auto mt-3 max-w-3xl sm:mt-4">
+          <div class="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 sm:gap-4">
+            <button id="btnMascotaAnterior" type="button" aria-label="Mostrar mascota anterior" class="flex h-11 w-11 items-center justify-center rounded-full border border-cyan-200/35 bg-slate-950/45 text-2xl font-bold text-[#c6d6a0] transition hover:scale-105 hover:bg-cyan-200/15 focus:outline-none focus:ring-2 focus:ring-[#c6d6a0]/50 sm:h-14 sm:w-14">
+              ‹
+            </button>
+
+            <!-- La tarjeta de la mascota se genera dinámicamente con innerHTML. -->
+            <div id="preview" class="min-w-0 overflow-hidden rounded-2xl border border-cyan-200/20 bg-slate-900/60 p-2.5 sm:p-3"></div>
+
+            <button id="btnMascotaSiguiente" type="button" aria-label="Mostrar mascota siguiente" class="flex h-11 w-11 items-center justify-center rounded-full border border-cyan-200/35 bg-slate-950/45 text-2xl font-bold text-[#c6d6a0] transition hover:scale-105 hover:bg-cyan-200/15 focus:outline-none focus:ring-2 focus:ring-[#c6d6a0]/50 sm:h-14 sm:w-14">
+              ›
+            </button>
+          </div>
+
+          <div class="mt-2 flex flex-col items-center gap-1">
+            <div id="indicadoresCarrusel" class="flex items-center justify-center gap-2" aria-label="Posición en la galería"></div>
+            <p id="contadorMascotas" class="text-xs font-semibold text-[#b7c6d9]">1 / 3</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Vista del juego: se muestra después de elegir una mascota. -->
+    <section id="vistaJuego" class="hidden min-h-[calc(100vh-2rem)]">
+      <header class="text-center">
+        <h1 class="text-xl font-extrabold tracking-tight text-[#c6d6a0] sm:text-3xl">Cuida de tu Tamagotchi</h1>
+        <p id="descripcionJuego" class="mx-auto mt-1.5 max-w-2xl text-xs text-[#b7c6d9] sm:text-sm"></p>
+        <p class="mt-2 text-[10px] text-[#c8d7e8] sm:text-xs">Consejo: en pantallas pequeñas gira el móvil para ver más botones por fila.</p>
+      </header>
+
+      <hr class="mx-auto my-3 w-full border-0 border-t-2 border-lime-200/20">
+
+      <p id="mensaje" class="min-h-5 text-center text-sm font-extrabold text-[#c6d6a0] sm:text-base"></p>
+
+      <!-- Panel izquierdo: mascota y propiedades. Panel derecho: acciones. -->
+      <div id="panelesJuego" class="mx-auto mt-6 grid w-full max-w-6xl grid-cols-1 gap-3 lg:mt-10 lg:grid-cols-[1.45fr_1fr]">
+        <section id="infoMascota" class="hidden rounded-2xl border border-lime-200/20 bg-[rgba(15,23,42,0.84)] p-3 backdrop-blur-sm shadow-[0_4px_20px_rgba(2,8,20,0.45),0_20px_45px_rgba(0,0,0,0.35)] sm:p-4">
+          <h2 id="nombreMascota" class="hidden text-center text-base font-extrabold text-[#c6d6a0] sm:text-xl"></h2>
+          <p id="creadorMascota" class="hidden mt-1 text-center text-xs font-semibold text-[#b7c6d9] sm:text-sm"></p>
+
+          <div class="mt-2 grid grid-cols-1 gap-3 min-[460px]:grid-cols-[minmax(0,180px)_1fr]">
+            <aside id="imagenMascota" class="hidden animate-float flex h-44 w-full items-center justify-center overflow-hidden rounded-2xl border border-cyan-200/20 bg-slate-900/60 min-[320px]:h-52 sm:h-64"></aside>
+
+            <div class="grid grid-cols-1 gap-2.5 lg:grid-cols-2">
+              <p id="personalidad" class="rounded-xl border border-lime-200/20 bg-slate-950/35 px-2.5 py-2 text-xs italic text-[#c6d6a0] sm:text-sm lg:col-span-2"></p>
+              <!-- Cada indicador tiene un contenedor visual y otro valor numérico. -->
+              <p class="flex items-center gap-1 overflow-hidden whitespace-nowrap rounded-xl border border-cyan-200/20 bg-slate-950/35 px-2 py-2 text-xs font-semibold"><span>Salud:</span><span id="salud" class="flex min-w-0 flex-1 items-center gap-px overflow-hidden"></span><span>(<span id="valorSalud">0</span>)</span></p>
+              <p class="flex items-center gap-1 overflow-hidden whitespace-nowrap rounded-xl border border-cyan-200/20 bg-slate-950/35 px-2 py-2 text-xs font-semibold"><span>Felicidad:</span><span id="textoFelicidad" class="flex min-w-0 flex-1 items-center gap-px overflow-hidden"></span><span>(<span id="valorFelicidad">0</span>)</span></p>
+              <p class="flex items-center gap-1 overflow-hidden whitespace-nowrap rounded-xl border border-cyan-200/20 bg-slate-950/35 px-2 py-2 text-xs font-semibold"><span>Limpieza:</span><span id="textoLimpieza" class="flex min-w-0 flex-1 items-center gap-px overflow-hidden"></span><span>(<span id="valorLimpieza">0</span>)</span></p>
+              <p class="flex items-center gap-1 overflow-hidden whitespace-nowrap rounded-xl border border-cyan-200/20 bg-slate-950/35 px-2 py-2 text-xs font-semibold"><span>Energía:</span><span id="textoEnergia" class="flex min-w-0 flex-1 items-center gap-px overflow-hidden"></span><span>(<span id="valorEnergia">0</span>)</span></p>
+            </div>
+          </div>
+        </section>
+
+        <section id="actividades" class="hidden rounded-2xl border border-lime-200/20 bg-[rgba(15,23,42,0.84)] p-3 backdrop-blur-sm shadow-[0_4px_20px_rgba(2,8,20,0.45),0_20px_45px_rgba(0,0,0,0.35)] sm:p-4">
+          <h3 class="text-base font-bold text-[#c6d6a0]">Actividades</h3>
+          <!-- Los IDs permiten mapear los botones y asignar sus escuchadores. -->
+          <div class="mt-3.5 grid grid-cols-2 gap-2.5 min-[390px]:grid-cols-3">
+            <button id="alimentar" type="button" class="h-11 rounded-xl border border-cyan-200/35 bg-cyan-300/10 px-2 text-xs font-semibold transition-colors hover:bg-cyan-200/20 sm:text-sm"><span class="text-base">🍎</span> Alimentar</button>
+            <button id="jugarConMascota" type="button" class="h-11 rounded-xl border border-cyan-200/35 bg-cyan-300/10 px-2 text-xs font-semibold transition-colors hover:bg-cyan-200/20 sm:text-sm"><span class="text-base">🎾</span> Jugar</button>
+            <button id="dormir" type="button" class="h-11 rounded-xl border border-cyan-200/35 bg-cyan-300/10 px-2 text-xs font-semibold transition-colors hover:bg-cyan-200/20 sm:text-sm"><span class="text-base">😴</span> Dormir</button>
+            <button id="duchar" type="button" class="h-11 rounded-xl border border-cyan-200/35 bg-cyan-300/10 px-2 text-xs font-semibold transition-colors hover:bg-cyan-200/20 sm:text-sm"><span class="text-base">🛁</span> Duchar</button>
+            <button id="reprender" type="button" class="h-11 rounded-xl border border-cyan-200/35 bg-cyan-300/10 px-2 text-xs font-semibold transition-colors hover:bg-cyan-200/20 sm:text-sm"><span class="text-base">📛</span> Reprender</button>
+            <button id="acariciar" type="button" class="h-11 rounded-xl border border-cyan-200/35 bg-cyan-300/10 px-2 text-xs font-semibold transition-colors hover:bg-cyan-200/20 sm:text-sm"><span class="text-base">💖</span> Acariciar</button>
+          </div>
+          <p class="mt-4 rounded-xl border border-cyan-200/20 bg-slate-950/35 px-3 py-2 text-xs leading-relaxed text-[#c8d7e8]">
+            El juego termina cuando la salud y la energía llegan a 0.
+          </p>
+        </section>
+      </div>
+
+      <div class="mt-4 text-center">
+        <button id="btnVolver" type="button" class="inline-flex h-10 items-center justify-center rounded-xl border border-[#c6d6a0]/60 bg-[#c6d6a0] px-5 text-sm font-bold text-[#0f172a] shadow-[0_6px_20px_rgba(198,214,160,0.28)] transition hover:bg-[#d8e7b5]">
+          Volver a elegir mascota
+        </button>
+      </div>
+    </section>
+  </main>
+  <!-- Footer mobile first: apilado en móvil y más amplio desde sm. -->
+  <footer class="relative z-10 mx-auto flex min-h-20 w-full max-w-7xl items-center justify-center border-t border-cyan-200/20 px-4 py-3 text-center text-[11px] leading-relaxed text-[#b7c6d9] sm:min-h-16 sm:px-6 sm:py-4 sm:text-xs">
+    <p class="max-w-3xl">
+      Proyecto integrador realizado por Yolanda Fontanillas a partir de las mascotas creadas por Yordano Gil, Joel Moussi y Yolanda Fontanillas.
+    </p>
+  </footer>
+
+  <!-- Orden necesario: clase, datos de mascotas y lógica principal. -->
+  <script src="./js/clasetamagotchi.js"></script>
+  <script src="./js/videos.js"></script>
+  <script src="./js/tamagotchis.js"></script>
+</body>
+
+</html>
